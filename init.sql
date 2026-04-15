@@ -1,0 +1,21 @@
+CREATE DATABASE IF NOT EXISTS hc_facilities;
+USE hc_facilities;
+
+CREATE TABLE usuario (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  telefone VARCHAR(20) NOT NULL,
+  endereco VARCHAR(150) NOT NULL,
+  data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE usuario_servico (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT NOT NULL,
+  servico VARCHAR(100) NOT NULL,
+  FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+ALTER TABLE usuario
+ADD COLUMN tipo VARCHAR(20);
