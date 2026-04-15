@@ -1,0 +1,4579 @@
+{
+  "name": "HC Express - Chatbot Base (Prestador/Cliente)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp/messages-upsert",
+        "options": {}
+      },
+      "id": "3f6819c5-395e-400e-8d2e-109d9bd588da",
+      "name": "Webhook WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        1504
+      ],
+      "webhookId": "b3e9e8d5-74a9-4ba0-b4a3-01c16fe0f5a4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2294e302-6d0a-40e2-aef8-b39cb49aedf6",
+              "leftValue": "={{ $('Webhook WhatsApp').item.json.body.data.key.fromMe }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -368,
+        1504
+      ],
+      "id": "817327e8-7a85-475e-9883-d9891f3129fe",
+      "name": "Ignorar mensagens do bot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3ae6cf5a-957a-4587-9236-5b3135cb8916",
+              "name": "telefone",
+              "value": "={{$json.body.data.key.remoteJid.replace('@s.whatsapp.net','')}}",
+              "type": "string"
+            },
+            {
+              "id": "7167b1bd-4e37-4e5b-ac48-2f61bd18cac5",
+              "name": "mensagem",
+              "value": "={{$json.body.data.message.conversation}}",
+              "type": "string"
+            },
+            {
+              "id": "1b655d60-ed8a-4fa2-88be-740d466be15c",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -144,
+        1504
+      ],
+      "id": "c16cbc2d-9653-4b76-a40a-78a12b00f717",
+      "name": "ContextoUsuario"
+    },
+    {
+      "parameters": {
+        "collection": "sessions",
+        "options": {},
+        "query": "={\n  \"telefone\": \"{{$(\"ContextoUsuario\").item.json.telefone}}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        2032
+      ],
+      "id": "8a1bcd84-06ff-475d-a828-e1367faf32b8",
+      "name": "ExisteTelefone",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        1024
+      ],
+      "id": "48cce4ea-43be-4c15-9790-1dbf3596bc6c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "collection": "sessions",
+        "options": {},
+        "query": "={\n  \"telefone\": \"{{ $json.telefone }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        1744
+      ],
+      "id": "caabb627-dc3c-4e36-b92d-611796e50f20",
+      "name": "buscaUsuarioExistenteParaMerge",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "sessions",
+        "fields": "telefone,estado,ultima_interacao",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        2128
+      ],
+      "id": "54a6da74-4cc3-4b99-8831-c5397f2df5c7",
+      "name": "criarEstadoInicial",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1dd7d8ab-d4ea-49b8-98f8-75aa8af98e6e",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "08303dbb-9572-4013-bf41-ca41fa6cda1f",
+              "name": "estado",
+              "value": "menu_principal",
+              "type": "string"
+            },
+            {
+              "id": "0d962340-bb34-475c-9435-67570e3e2b3c",
+              "name": "ultima_interacao",
+              "value": "={{$now}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        2128
+      ],
+      "id": "338d64a3-a837-4ee9-ae34-ec247bc90f85",
+      "name": "dadosCriacao",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.estado }}",
+                    "rightValue": "menu_principal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "dd6001bb-2580-404e-a7b0-fb4ecbd15b0a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Principal"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8add9ea2-7b90-482f-9a44-8a8179157360",
+                    "leftValue": "={{ $json.estado }}",
+                    "rightValue": "menu_prestador",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Prestador"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "28fa22a0-3b6e-41f4-9297-416759b88685",
+                    "leftValue": "={{ $json.estado }}",
+                    "rightValue": "menu_cliente",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cliente"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1424,
+        1008
+      ],
+      "id": "42d9ca26-52ee-4f38-809d-c64089910ef7",
+      "name": "gerenciaMenu"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8b9f360b-7950-4c09-9d1a-10b567cfeaa7",
+              "leftValue": "1",
+              "rightValue": "={{ $json.mensagem }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1648,
+        -864
+      ],
+      "id": "074a1a37-f78d-4e5a-b40a-50f5b936891a",
+      "name": "isCliente"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8b9f360b-7950-4c09-9d1a-10b567cfeaa7",
+              "leftValue": "2",
+              "rightValue": "={{ $json.mensagem }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1872,
+        -768
+      ],
+      "id": "b06548d6-eb14-4285-9d5e-fd6f833d0688",
+      "name": "isPrestador"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.telefone }}\",\n  \"text\": \"🤔 Não consegui entender sua resposta.\\n\\nPor favor, escolha uma das opções informadas no menu.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3888,
+        -272
+      ],
+      "id": "7a092211-2da8-49c5-b7fe-ee948d6fbdfd",
+      "name": "nãoEntendiMensagem"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "estado,subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        -832
+      ],
+      "id": "a4499faf-a6ca-4884-8cb0-8e2a4cf0415b",
+      "name": "updateMenuPrestador",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "estado,subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        -1024
+      ],
+      "id": "64b4b9e6-9b28-4d5f-bad5-9144d797c5ae",
+      "name": "updateMenuCliente",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "964e01cd-9ea2-4687-9631-f44052a21ba1",
+              "name": "estado",
+              "value": "menu_cliente",
+              "type": "string"
+            },
+            {
+              "id": "2f8b211c-386c-469b-8841-e196e630e937",
+              "name": "subestado",
+              "value": "subestado_nome",
+              "type": "string"
+            },
+            {
+              "id": "a805ff3b-7b5a-430a-a966-bb933b9e5f43",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2096,
+        -1024
+      ],
+      "id": "78854584-06c6-4df9-a0e7-edd106b8e670",
+      "name": "setEstadoCliente"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "964e01cd-9ea2-4687-9631-f44052a21ba1",
+              "name": "estado",
+              "value": "menu_prestador",
+              "type": "string"
+            },
+            {
+              "id": "399cb222-7265-4068-8bfc-328ba67e397e",
+              "name": "subestado",
+              "value": "subestado_nome",
+              "type": "string"
+            },
+            {
+              "id": "af0b2787-89d0-4f35-9f6b-fe9f329b3fec",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2096,
+        -832
+      ],
+      "id": "a760f62f-eade-45c8-91a5-430de27b319e",
+      "name": "setEstadoPrestador"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Perfeito 👍\\n\\nVamos iniciar seu cadastro.\\n\\nPara começar, qual é o seu *nome completo*?\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2544,
+        -928
+      ],
+      "id": "5b3c484c-248f-4dda-90d2-4160a5574ded",
+      "name": "perguntaNome"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$json.telefone}}\",\n  \"text\": \"👋 Olá! Seja bem-vindo(a) à *HC Facilities*.\\n\\nPara começarmos, me informe como deseja ser atendido:\\n\\n1️⃣ Cliente\\n2️⃣ Prestador de Serviço\\n\\nDigite apenas o número da opção.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1424,
+        2128
+      ],
+      "id": "9fbb1d2b-501f-42c6-a86a-e7b92fb1f3f8",
+      "name": "menuPrincipal"
+    },
+    {
+      "parameters": {
+        "content": "## Guia de Estados\n\n**menu_principal** Estado para envio da primeira mensagem\n\n**menu_prestador** Estado para envio de mensagens para prestadores de serviço\n\n**menu_cliente** Estado para envio de mensagens para clientes ",
+        "height": 304,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -704,
+        -1440
+      ],
+      "typeVersion": 1,
+      "id": "e2fcc415-901c-4e94-9d20-a2fabaef68fa",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Guia de Sub Estados\n\n### Menu Prestador \n**subestados_nome** Estado para perguntar nome do prestador\n\n**subestado_endereco** Estado para perguntar endereço do prestador\n\n**subestado_email** Estado para perguntar email do prestador\n\n**subestado_atuacao** Estado para perguntar area de atuação\n\n**subestado_escolherservico** Estado para perguntar o serviço\n\n**subestado_outra_atuacao** Estado para perguntar se possui mais de uma atuacao\n\n**subestado_diasatuacao** Estado para perguntar dias de atuação\n\n**subestado_confirmadados** Estado para perguntar dados a confirmar\n\n**subestador_trocanome** Estado para perguntar o novo nome\n\n**subestador_trocaemail** Estado para perguntar o novo email\n\n**subestador_trocaendereco** Estado para perguntar o novo endereco\n\n**subestado_permitesalvar** Estado para perguntar permissão para salvar dados\n\n### Menu Cliente\n**subestado_nome** Estado para armazenar nome do cliente\n\n**subestado_telefone** Estado para armazenar telefone do cliente\n\n**subestado_endereco** Estado para armazenar endereço do cliente\n\n**subestado_email** Estado para armazenar email do cliente",
+        "height": 624,
+        "width": 656
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -320,
+        -1440
+      ],
+      "typeVersion": 1,
+      "id": "0e3b8bfa-1574-40e8-b6c5-78b25bc10c68",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "subestado_nome",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1648,
+        1264
+      ],
+      "id": "a5fe490e-3e0a-4104-969b-d3507ed2ce05",
+      "name": "isSubestadoNome"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3adb1bc5-7b1b-40e1-904a-b5ad9b6b7c57",
+              "name": "telefone",
+              "value": "={{ $json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_email",
+              "type": "string"
+            },
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "nome",
+              "value": "={{$(\"ContextoUsuario\").item.json.mensagem}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1872,
+        -528
+      ],
+      "id": "640440c0-644e-41fb-ba49-95f11f3f3d44",
+      "name": "setNomeUsuario"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "nome,subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        -528
+      ],
+      "id": "c2485c04-065f-4415-a2b3-79edddfa1784",
+      "name": "updateNomeUsuario",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "subestado_email",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1872,
+        1360
+      ],
+      "id": "ace30d75-46bd-486b-9676-6aec00a77883",
+      "name": "isSubestadoEmail"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Prazer em falar com você, *{{$json.nome}}* 😊\\n\\nAgora me informe o seu *melhor e-mail*.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2320,
+        -528
+      ],
+      "id": "d53a0675-1d5d-48c0-a587-21a20d116345",
+      "name": "perguntaEmail"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "email,subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        -336
+      ],
+      "id": "abc10e84-9d6a-4d1b-bac4-4bb8f9f4fb9c",
+      "name": "updateEmailUsuario",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Perfeito 👍\\n\\n📋 *Dados informados até agora:*\\n\\nNome: {{$('setEmailUsuario').item.json.nome}}\\nE-mail: {{$json.email}}\\nTelefone: {{$json.telefone}}\\n\\nAgora me informe o seu *endereço completo*.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2544,
+        -336
+      ],
+      "id": "aee27de0-1543-4889-afa0-549db3ff2660",
+      "name": "perguntaEndereco"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "subestado_endereco",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2096,
+        1456
+      ],
+      "id": "51af5ca2-d236-4329-965a-3ee3bf59b09d",
+      "name": "isSubestadoEndereco"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "=subestado_confirmadados",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2544,
+        2272
+      ],
+      "id": "dc65bf3f-2be2-4e86-b687-171f7bd03431",
+      "name": "isSubestadoConfirmaDados"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "=1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2768,
+        1888
+      ],
+      "id": "14d1020e-48f9-44ed-85ac-88bf6ecb882a",
+      "name": "isTrocaNome"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "=2",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2992,
+        2080
+      ],
+      "id": "4f4841a6-eb60-4b82-860e-328b4f41add3",
+      "name": "isTrocaEmail"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "=3",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3216,
+        2272
+      ],
+      "id": "e5b2984d-03d5-4a90-91d7-17f32895e174",
+      "name": "isTrocaEndereco"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "=4",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3440,
+        2368
+      ],
+      "id": "0263b2cd-94e8-4405-9867-e45aadc5f1dd",
+      "name": "isContinuar"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Sem problemas 👍\\n\\nPor qual nome você deseja ser chamado(a)?\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2992,
+        1408
+      ],
+      "id": "d1631754-01f6-483f-8b78-699b17389afd",
+      "name": "perguntaTrocarNome"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Perfeito 👍\\n\\nQual e-mail você deseja utilizar?\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3216,
+        1600
+      ],
+      "id": "0f760c29-170c-410f-bd38-3f49c94c8b01",
+      "name": "perguntaTrocarEmail"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "endereco,subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2544,
+        -144
+      ],
+      "id": "b4781cc3-49e4-41bf-ba85-cb4ee24f0927",
+      "name": "updateEnderecoUsuario",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3adb1bc5-7b1b-40e1-904a-b5ad9b6b7c57",
+              "name": "telefone",
+              "value": "={{ $json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_permitesalvar",
+              "type": "string"
+            },
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "nome",
+              "value": "={{$json.nome}}",
+              "type": "string"
+            },
+            {
+              "id": "64c0029c-cf6e-42b3-ad54-9376bbbd53b5",
+              "name": "email",
+              "value": "={{$json.email}}",
+              "type": "string"
+            },
+            {
+              "id": "9d68df37-bc9b-4608-903d-f656bad7bdd8",
+              "name": "endereco",
+              "value": "={{$json.endereco}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3664,
+        1984
+      ],
+      "id": "a3cfff68-e975-4751-833c-d395c00cb1d6",
+      "name": "setConfirmaUsuario"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Certo 👍\\n\\nQual é o seu endereço completo?\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3440,
+        1792
+      ],
+      "id": "a216cc18-3672-4b7b-8867-280a46ed5f82",
+      "name": "perguntaTrocarEndereco"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "endereco,nome,email,subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3888,
+        2272
+      ],
+      "id": "13d3f821-0d80-454d-a7b3-80d78f53d849",
+      "name": "updateConfirmaUsuario",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "=subestado_permitesalvar",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4112,
+        2896
+      ],
+      "id": "8c6b8440-c3c2-4513-9819-e12a860d4f72",
+      "name": "isSubestadoPermiteSalvar"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"🔒 Você autoriza a *HC Facilities* a armazenar seus dados para dar continuidade ao atendimento?\\n\\n1️⃣ Sim\\n2️⃣ Não\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4112,
+        2272
+      ],
+      "id": "13dd7f76-050c-47d1-9beb-1e2f26e1e56c",
+      "name": "perguntaPermiteSalvar"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "sessions",
+        "query": "={\n  \"telefone\": \"{{$json.telefone}}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        4560,
+        3328
+      ],
+      "id": "8f50e837-51ed-4bd1-afa6-80c204e2c6de",
+      "name": "apagarSessao",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Sem problemas 😊\\n\\nSeu atendimento foi finalizado.\\n\\nSe mudar de ideia, é só iniciar uma nova conversa.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4784,
+        3328
+      ],
+      "id": "de0a43df-eca4-47b4-a371-ab551a5b01e2",
+      "name": "finalizaConversa"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"🔧 Qual é a sua *área de atuação*?\\n\\n1️⃣ Eletricista\\n2️⃣ Civil / pequenos reparos\\n3️⃣ Pintor\\n4️⃣ Ar-condicionado\\n5️⃣ Bombas em geral\\n6️⃣ Hidráulica\\n\\nDigite apenas o número da opção.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2992,
+        -352
+      ],
+      "id": "1aad5e2f-7877-4d4b-bf82-2448fefa8114",
+      "name": "perguntaAreaAtuacao"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2544,
+        592
+      ],
+      "id": "b2775fdc-7ba9-40d3-8dcd-c7edfd50d4d9",
+      "name": "isEletrecista"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "3",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2992,
+        688
+      ],
+      "id": "d4c51b2d-1e11-4f1b-adad-4dee69766146",
+      "name": "isPintor"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Você possui outra área de atuação além de *{{$json.servico.join(', ')}}*?\\n\\nSe sim, digite o número da nova área.\\n\\nCaso não possua, digite *0️⃣* para continuar.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4784,
+        880
+      ],
+      "id": "50435cc7-1c4d-474e-9a64-18edebdd1085",
+      "name": "perguntaOutraAreaAtuacao"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "=servico",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        4336,
+        880
+      ],
+      "id": "7eb1a11f-c533-45f0-a0a6-5a9b67453260",
+      "name": "updateAreaAtuacaoUsuario",
+      "alwaysOutputData": false,
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3888,
+        944
+      ],
+      "id": "1e671678-6d50-4ba3-bba0-1b7cb5232891",
+      "name": "isNaoPossuiOutraAtuacao"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"📋 *Confira seus dados:*\\n\\nNome: {{$json.nome}}\\nE-mail: {{$json.email}}\\nEndereço: {{$json.endereco}}\\n\\nEstá tudo correto?\\n\\n1️⃣ Alterar nome\\n2️⃣ Alterar e-mail\\n3️⃣ Alterar endereço\\n4️⃣ Sim, continuar\\n5️⃣ 🔄 Reiniciar atendimento\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4784,
+        2416
+      ],
+      "id": "1b97f887-6536-40f6-ad96-d432c70f9c20",
+      "name": "perguntaConfirmarDados"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        4336,
+        1424
+      ],
+      "id": "5eba28b8-cf19-4a3c-b6dc-8d397cbd5101",
+      "name": "updateNaoPossuiOutraArea",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3adb1bc5-7b1b-40e1-904a-b5ad9b6b7c57",
+              "name": "telefone",
+              "value": "={{ $json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_confirmadados",
+              "type": "string"
+            },
+            {
+              "id": "9b2a350b-6600-4ae4-876d-4ab130102e8a",
+              "name": "nome",
+              "value": "={{ $json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "8b69f601-9172-4d19-a3d5-e6c67777cdad",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "f979fe0d-61c7-4a46-80dd-ff8dd8af4189",
+              "name": "endereco",
+              "value": "={{ $json.endereco }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4112,
+        1424
+      ],
+      "id": "e73dd8ad-5fdb-4b1c-97d1-eaf72b5fc0f7",
+      "name": "setConfirmaDados"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "=1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4336,
+        2896
+      ],
+      "id": "2a06a1b7-d3e7-4c70-aefc-1192ae5819bb",
+      "name": "isPermiteSalvar"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "=subestado_trocanome",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3440,
+        2944
+      ],
+      "id": "dd1897f8-2103-4121-8900-7739706990b4",
+      "name": "isSubestadoTrocaNome"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3adb1bc5-7b1b-40e1-904a-b5ad9b6b7c57",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_trocanome",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3216,
+        1408
+      ],
+      "id": "50427b63-0e25-4d90-8349-fb7fc93a10a3",
+      "name": "setSubestadoTrocaNome"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_trocaemail",
+              "type": "string"
+            },
+            {
+              "id": "e5f6f113-4bbb-401d-aa11-886e5bb05c5c",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3440,
+        1600
+      ],
+      "id": "f6964dc0-3571-468b-a1f1-cec16e2d41cc",
+      "name": "setSubestadoTrocaEmail"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_trocaendereco",
+              "type": "string"
+            },
+            {
+              "id": "e5f6f113-4bbb-401d-aa11-886e5bb05c5c",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3664,
+        1792
+      ],
+      "id": "93145435-726c-42e3-a8bc-ab035e1eb14c",
+      "name": "setSubestadoTrocaEndereco"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3888,
+        2080
+      ],
+      "id": "aa8d7f0c-2f24-4dd0-83b8-c2047b985800",
+      "name": "updateSubestadoTrocaEndereco",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3664,
+        1600
+      ],
+      "id": "090bb5e8-2f61-4c93-ab14-6c77b23c4986",
+      "name": "updateSubestadoTrocaEmail",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "subestado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3440,
+        1408
+      ],
+      "id": "2739098b-1824-45db-8a1b-8f126c4e127f",
+      "name": "updateSubestadoTrocaNome",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "=subestado_trocaemail",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3664,
+        3088
+      ],
+      "id": "fed23702-fe03-4c12-a784-a0e5b4fb6e0a",
+      "name": "isSubestadoTrocaEmail"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "=subestado_trocaendereco",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3888,
+        2992
+      ],
+      "id": "cd09c58f-59af-4985-8016-83353d71f9e4",
+      "name": "isSubestadoTrocaEndereco"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_confirmadados",
+              "type": "string"
+            },
+            {
+              "id": "e5f6f113-4bbb-401d-aa11-886e5bb05c5c",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "4f1d5c8a-9f31-46f0-a60a-135521297dc5",
+              "name": "nome",
+              "value": "={{$(\"ContextoUsuario\").item.json.mensagem}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4112,
+        2704
+      ],
+      "id": "b1c32832-e476-4751-be49-11dcf36dfee9",
+      "name": "setTrocaNome"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "subestado,nome",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        4336,
+        2704
+      ],
+      "id": "097cf916-fb05-4d03-a80d-424132f40210",
+      "name": "updateTrocaNome",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_confirmadados",
+              "type": "string"
+            },
+            {
+              "id": "e5f6f113-4bbb-401d-aa11-886e5bb05c5c",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "4f1d5c8a-9f31-46f0-a60a-135521297dc5",
+              "name": "email",
+              "value": "={{$(\"ContextoUsuario\").item.json.mensagem}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4112,
+        3328
+      ],
+      "id": "150a218d-d3fe-4d75-abdc-b80fbad86ab4",
+      "name": "setTrocaEmail"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "subestado,email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        4336,
+        3328
+      ],
+      "id": "a8d69069-ce5e-44c4-b439-37be53e2979f",
+      "name": "updateTrocaEmail",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_confirmadados",
+              "type": "string"
+            },
+            {
+              "id": "e5f6f113-4bbb-401d-aa11-886e5bb05c5c",
+              "name": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "4f1d5c8a-9f31-46f0-a60a-135521297dc5",
+              "name": "endereco",
+              "value": "={{$(\"ContextoUsuario\").item.json.mensagem}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4112,
+        3136
+      ],
+      "id": "4b2be159-be48-47b1-9253-b1c8575dbb76",
+      "name": "setTrocaEndereco"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "sessions",
+        "updateKey": "telefone",
+        "fields": "subestado,endereco",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        4336,
+        3136
+      ],
+      "id": "faf0e047-1858-42b1-b6b3-809da8f033dc",
+      "name": "updateTrocaEndereco",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "sessions",
+        "options": {},
+        "query": "={\n  \"telefone\": \"{{$(\"ContextoUsuario\").item.json.telefone}}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        4560,
+        2416
+      ],
+      "id": "c31ced69-886a-450b-bd95-520d74dd8621",
+      "name": "BuscaUsuario",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"🛠️ Qual serviço você precisa?\\n\\n1️⃣ Eletricista\\n2️⃣ Civil / pequenos reparos\\n3️⃣ Pintor\\n4️⃣ Ar-condicionado\\n5️⃣ Bombas em geral\\n6️⃣ Hidráulica\\n\\nDigite apenas o número da opção.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2992,
+        -48
+      ],
+      "id": "78f6144b-cba6-40ce-925c-4717cfb72167",
+      "name": "perguntaEscolherServiço"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3adb1bc5-7b1b-40e1-904a-b5ad9b6b7c57",
+              "name": "telefone",
+              "value": "={{ $json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "857ef5ff-589e-4a5b-a0e3-3ac58e78fb8c",
+              "name": "subestado",
+              "value": "=subestado_endereco",
+              "type": "string"
+            },
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "email",
+              "value": "={{$(\"ContextoUsuario\").item.json.mensagem}}",
+              "type": "string"
+            },
+            {
+              "id": "45c33579-e096-48b4-8f51-4d9eeab817aa",
+              "name": "nome",
+              "value": "={{$json.nome}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2096,
+        -336
+      ],
+      "id": "483075bb-c69e-4ea2-8352-84b4fb90a110",
+      "name": "setEmailUsuario"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "servicoSelecionado",
+              "value": "Eletrecista",
+              "type": "string"
+            },
+            {
+              "id": "d5eef071-d0cb-4b6d-8f90-09b575ff622c",
+              "name": "telefone",
+              "value": "={{$json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "ac464670-d8f4-4407-a9d2-efe126e236b3",
+              "name": "servico",
+              "value": "={{$json.servico}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3888,
+        560
+      ],
+      "id": "565b66a8-339f-4d0a-9855-354e1b3ead80",
+      "name": "setServicoEletrecista",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "servicoSelecionado",
+              "value": "Pintor",
+              "type": "string"
+            },
+            {
+              "id": "a1937edd-98ec-4395-b9f2-ad5963f907d2",
+              "name": "telefone",
+              "value": "={{$json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "2986b7c4-32ba-402c-8bb9-4e641dc75c90",
+              "name": "servico",
+              "value": "={{$json.servico}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3888,
+        1520
+      ],
+      "id": "5b794fb7-a8cc-49d5-ba58-5b1bce5709ff",
+      "name": "setServicoPintor"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "82c575be-2734-4adf-a878-b25cccfb6a50",
+              "leftValue": "={{ $json.menu }}",
+              "rightValue": "menu_prestador",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4560,
+        880
+      ],
+      "id": "6b6ba695-1812-478e-b2f9-6dd0e27f8bab",
+      "name": "isPrestadorNovoServico"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"Deseja adicionar outro serviço além de *{{$json.servico.join(', ')}}*?\\n\\nSe sim, digite o número da nova opção.\\n\\nCaso não queira adicionar, digite *0️⃣* para continuar.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4784,
+        1232
+      ],
+      "id": "73f95003-32ec-46be-add0-3eec6297564e",
+      "name": "perguntaOutraServico"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.subestado }}",
+              "rightValue": "subestado_escolherservico",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2320,
+        1616
+      ],
+      "id": "5c63e306-d3e0-4a97-a901-64c031bc0d49",
+      "name": "isSubestadoEscolherServico"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "let servicoAtual = $json.servico || [];\n\n// se vier como string (por bug antigo), converte\nif (typeof servicoAtual === \"string\") {\n  try {\n    servicoAtual = JSON.parse(servicoAtual);\n  } catch {\n    servicoAtual = [];\n  }\n}\n\nlet novoServico = $json.servicoSelecionado;\n\nif (!Array.isArray(servicoAtual)) {\n  servicoAtual = [];\n}\n\nif (novoServico && !servicoAtual.includes(novoServico)) {\n  servicoAtual.push(novoServico);\n}\n\nreturn {\n  json: {\n    ...$json,\n    servico: servicoAtual\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4112,
+        880
+      ],
+      "id": "1ba445a7-454e-4559-81a3-a97ab1b888c8",
+      "name": "listaServico"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "usuario",
+          "mode": "list",
+          "cachedResultName": "usuario"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        4784,
+        3136
+      ],
+      "id": "22362759-3b77-407e-a45d-07dcc4b65a5a",
+      "name": "InsereDadosUsuario",
+      "credentials": {
+        "mySql": {
+          "id": "xktnJL7vngcx9ccY",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const usuarioId = $json.usuario_id;\nconst servicos = $json.servicos || [];\n\nreturn servicos.map(servico => ({\n  json: {\n    usuario_id: usuarioId,\n    servico: servico\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5456,
+        3136
+      ],
+      "id": "92a98101-e421-4f34-b0e8-e07f3a4a03a5",
+      "name": "constroiObjetoUusarioServico"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3dff637-6524-4d32-8231-42bbc735e591",
+              "name": "endereco",
+              "value": "={{ $json.endereco }}",
+              "type": "string"
+            },
+            {
+              "id": "d6c8e4cb-1e08-4829-b9a6-176ca23d5e58",
+              "name": "nome",
+              "value": "={{ $json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "d0271623-e913-4e2a-989b-23e837ad0723",
+              "name": "telefone",
+              "value": "={{ $json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "f3bce707-0a85-4323-bea0-7fd859d8290e",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "44df2160-fe31-4c90-95c1-0edd2d1380d9",
+              "name": "tipo",
+              "value": "={{ $json.estado === 'menu_prestador' ? 'prestador' : 'cliente' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4560,
+        3136
+      ],
+      "id": "3a7b6dcc-b9f6-4b6e-8711-005f5d2e474e",
+      "name": "setObjetoUsuario"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "usuario_servico",
+          "mode": "list",
+          "cachedResultName": "usuario_servico"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        5680,
+        3136
+      ],
+      "id": "76d4e2d4-3fa6-41f9-884e-69bbbe329562",
+      "name": "InsereDadosUsuarioServico",
+      "credentials": {
+        "mySql": {
+          "id": "xktnJL7vngcx9ccY",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99e5a86b-bbb7-47be-a8f7-711eb573220c",
+              "name": "servicos",
+              "value": "={{$(\"isPermiteSalvar\").item.json.servico}}",
+              "type": "array"
+            },
+            {
+              "id": "3b1dd2e3-6e48-42ce-a2fb-70ab2081d3c1",
+              "name": "usuario_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5232,
+        3136
+      ],
+      "id": "dbf02be7-e77a-4376-8979-0aad336f5ef1",
+      "name": "setUsuarioServico"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "sessions",
+        "query": "={\n  \"telefone\": \"{{$(\"ContextoUsuario\").item.json.telefone}}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        5904,
+        3136
+      ],
+      "id": "b070232a-3023-4d69-9243-346f92394deb",
+      "name": "apagarSessao1",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "usuario",
+          "mode": "list",
+          "cachedResultName": "usuario"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        5008,
+        3136
+      ],
+      "id": "d180fe90-b483-42fc-ae1a-03afbef69899",
+      "name": "selectUsuarioCadastrado",
+      "credentials": {
+        "mySql": {
+          "id": "xktnJL7vngcx9ccY",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2e59ff2f-0c7f-43a6-a5b6-b275b88561ab",
+              "leftValue": "admin",
+              "rightValue": "={{ $json.tipo }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        528,
+        1552
+      ],
+      "id": "b076564a-9312-4200-85e0-95a83c0bd857",
+      "name": "isAdministrador"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "usuario",
+          "mode": "list",
+          "cachedResultName": "usuario"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "telefone",
+              "value": "={{$(\"ContextoUsuario\").item.json.telefone}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        80,
+        1840
+      ],
+      "id": "2646484a-037d-48c3-88e2-094e7d6653de",
+      "name": "selectAdministrador",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mySql": {
+          "id": "xktnJL7vngcx9ccY",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5908054f-d9cb-484a-afcc-a3b181d3420f",
+              "leftValue": "1",
+              "rightValue": "={{$(\"ContextoUsuario\").item.json.mensagem}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        1456
+      ],
+      "id": "c26d01bf-927c-47af-8107-bd1d445e37e1",
+      "name": "isConsultaDados"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "usuario",
+          "mode": "list",
+          "cachedResultName": "usuario"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        976,
+        1360
+      ],
+      "id": "8eb58ea4-2363-4b2e-a74c-cbb0bdf2e285",
+      "name": "selectDadosParaAdministrador",
+      "credentials": {
+        "mySql": {
+          "id": "xktnJL7vngcx9ccY",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$(\"ContextoUsuario\").item.json.telefone}}\",\n  \"text\": \"Olá {{$json.nome}}\\n\\n O que deseja consultar? \\n\\n 1️⃣ Consultar base\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        976,
+        1552
+      ],
+      "id": "39ff9f0b-b5b4-4e6f-b05d-d09b0de2399b",
+      "name": "perguntaAdmin"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendMedia/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1648,
+        1456
+      ],
+      "id": "999d9660-13bd-4604-bf61-8ac0a43ac10c",
+      "name": "enviaRelatorio"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"✅ Dados salvos com sucesso!\\n\\nSeu atendimento foi finalizado e em breve nossa equipe entrará em contato 😉\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6128,
+        3136
+      ],
+      "id": "284f466b-d975-44cd-a809-d4faaa11dd8a",
+      "name": "dadosSalvos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e39bc381-482c-4288-9911-b20e201d9c21",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        304,
+        1840
+      ],
+      "id": "0a257dc5-81ba-4f41-8ed9-cbf68bab94d8",
+      "name": "isPresente"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"✅ Verifiquei que você já está cadastrado em nosso sistema.\\n\\nNossa equipe já recebeu suas informações e entrará em contato em breve 😃\\n\\nObrigado por escolher a HC Facilities.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        752,
+        1648
+      ],
+      "id": "980edb4e-e56c-4a53-b446-4de7313bbb4e",
+      "name": "entraraEmContato"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "032e2903-0511-49cd-b510-30205b2399f4",
+              "leftValue": "={{$json.telefone}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        2032
+      ],
+      "id": "3ff75b17-7c47-4e5f-a1a6-80db2a71f1d5",
+      "name": "isTelefonePresente"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        1456
+      ],
+      "id": "88e49b8e-a624-42a5-845e-f3783f5ce6c7",
+      "name": "transformaEmPlanilha"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fileBuffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst base64 = fileBuffer.toString('base64');\n\nreturn [\n  {\n    json: {\n      number: $('ContextoUsuario').first().json.telefone,\n      mediatype: 'document',\n      mimetype: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',\n      caption: 'Segue o relatório solicitado',\n      media: base64,\n      fileName: 'relatorio_usuarios.xlsx'\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        1456
+      ],
+      "id": "3a8dc246-e241-4d1f-a20b-a48633079e95",
+      "name": "ajustaMensagem"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1VZkh9AuYmVkIUNPxDg2XOlMbszqSJ6Q2AiwuT5np3s4",
+          "mode": "list",
+          "cachedResultName": "HC-FACILITIES",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VZkh9AuYmVkIUNPxDg2XOlMbszqSJ6Q2AiwuT5np3s4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VZkh9AuYmVkIUNPxDg2XOlMbszqSJ6Q2AiwuT5np3s4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "telefone",
+              "displayName": "telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "endereco",
+              "displayName": "endereco",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "data_registro",
+              "displayName": "data_registro",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tipo",
+              "displayName": "tipo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        1696
+      ],
+      "id": "93bf3d73-21cc-4638-adf3-43f44836828f",
+      "name": "enviaParaGoogleSheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2z0jKGxWwHG3ssVj",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "=5",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3664,
+        2464
+      ],
+      "id": "a4527db1-e522-43a8-a0b4-f07e31b53a22",
+      "name": "isReiniciar"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "sessions",
+        "query": "={\n  \"telefone\": \"{{$(\"ContextoUsuario\").item.json.telefone}}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3888,
+        2512
+      ],
+      "id": "7963169e-917e-41aa-9c34-d6210909aada",
+      "name": "apagarSessao2",
+      "credentials": {
+        "mongoDb": {
+          "id": "hTFBhZcdnNoD6xNS",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kashin.app.br/message/sendText/Bot",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "48DAA79FBFE1-4FA8-B97A-2AFFE1B78610"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{$('ContextoUsuario').item.json.telefone}}\",\n  \"text\": \"✅ Conversa reiniciada. \\n Mande uma mensagem para abrir o menu inicial.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4112,
+        2512
+      ],
+      "id": "9bae0bd5-4565-4709-92da-9c3967ff1ca7",
+      "name": "conversaReiniciada"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "2",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2768,
+        784
+      ],
+      "id": "2f0c79a7-70c3-40c0-9267-9802735ee25a",
+      "name": "isCivil"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "servicoSelecionado",
+              "value": " Civil / pequenos reparos",
+              "type": "string"
+            },
+            {
+              "id": "2953a97d-f6d0-43c5-823f-d4c2276a1eaf",
+              "name": "telefone",
+              "value": "={{$json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "5448d6b4-831b-4002-abe9-e519a4ee208b",
+              "name": "servico",
+              "value": "={{ $json.servico }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3888,
+        1712
+      ],
+      "id": "da80c4b8-f9d4-4f8e-855a-fb20766c7e4b",
+      "name": "setServicoCivil"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "4",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3216,
+        592
+      ],
+      "id": "29a60c56-b662-4316-b614-13900ed39127",
+      "name": "isArcondicionado"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "servicoSelecionado",
+              "value": "Ar-condicionado",
+              "type": "string"
+            },
+            {
+              "id": "b6188011-f18e-4ff3-985d-d4639628e455",
+              "name": "telefone",
+              "value": "={{$json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "cdc51aa0-559c-401b-9d60-8136013bcc79",
+              "name": "servico",
+              "value": "={{ $json.servico }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3888,
+        1328
+      ],
+      "id": "d454a8c8-5b30-4a7c-93c5-a38689a23c72",
+      "name": "setServicoArcondicionado"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "5",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3440,
+        496
+      ],
+      "id": "8b5b0f08-b2a0-42a4-826c-07bb66e9325b",
+      "name": "isBombasGeral"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "servicoSelecionado",
+              "value": "Bombas em geral",
+              "type": "string"
+            },
+            {
+              "id": "b6188011-f18e-4ff3-985d-d4639628e455",
+              "name": "telefone",
+              "value": "={{$json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "cdc51aa0-559c-401b-9d60-8136013bcc79",
+              "name": "servico",
+              "value": "={{ $json.servico }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3888,
+        1136
+      ],
+      "id": "f37ef922-4d92-4e30-92e2-8318c503c3d8",
+      "name": "setServicoBombasGeral"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49b42ae6-5e5e-406e-b509-b2c7d0566298",
+              "leftValue": "={{ $json.mensagem }}",
+              "rightValue": "6",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3664,
+        400
+      ],
+      "id": "096c83b2-1e99-4c37-b38f-04919464224a",
+      "name": "isHidráulica"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86c47bfb-9edb-40fc-a34c-d3b09f6a9b80",
+              "name": "servicoSelecionado",
+              "value": "Hidráulica",
+              "type": "string"
+            },
+            {
+              "id": "b6188011-f18e-4ff3-985d-d4639628e455",
+              "name": "telefone",
+              "value": "={{$json.telefone}}",
+              "type": "string"
+            },
+            {
+              "id": "cdc51aa0-559c-401b-9d60-8136013bcc79",
+              "name": "servico",
+              "value": "={{ $json.servico }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3888,
+        752
+      ],
+      "id": "2b2bd320-2700-4db8-bf04-bbeb3d7d210c",
+      "name": "setServicoHidraulica"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "139f9e94-606b-4c5d-9de3-0b0847d07d62",
+              "name": "endereco",
+              "value": "={{ $json.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "02d23fd9-e19d-46c2-9da1-b6655781d880",
+              "name": "telefone",
+              "value": "={{ $json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "947ee406-f0d8-48fa-8e0d-447f59129e37",
+              "name": "subestado",
+              "value": "subestado_escolherservico",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2320,
+        -144
+      ],
+      "id": "ec7a0838-0975-49ec-b28f-bc5aa472d404",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9a50e13c-33eb-48ac-bd6d-0591795e0c9e",
+              "leftValue": "={{$('Merge').item.json.estado}}",
+              "rightValue": "menu_prestador",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2768,
+        -144
+      ],
+      "id": "ac43d999-6f80-498f-a030-78a37a05b359",
+      "name": "isPerguntaPrestador"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Ignorar mensagens do bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ignorar mensagens do bot": {
+      "main": [
+        [
+          {
+            "node": "ContextoUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ContextoUsuario": {
+      "main": [
+        [
+          {
+            "node": "selectAdministrador",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExisteTelefone": {
+      "main": [
+        [
+          {
+            "node": "isTelefonePresente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscaUsuarioExistenteParaMerge": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "dadosCriacao": {
+      "main": [
+        [
+          {
+            "node": "criarEstadoInicial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "criarEstadoInicial": {
+      "main": [
+        [
+          {
+            "node": "menuPrincipal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "gerenciaMenu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gerenciaMenu": {
+      "main": [
+        [
+          {
+            "node": "isCliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoNome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoNome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isCliente": {
+      "main": [
+        [
+          {
+            "node": "setEstadoCliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isPrestador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isPrestador": {
+      "main": [
+        [
+          {
+            "node": "setEstadoPrestador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "nãoEntendiMensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setEstadoCliente": {
+      "main": [
+        [
+          {
+            "node": "updateMenuCliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setEstadoPrestador": {
+      "main": [
+        [
+          {
+            "node": "updateMenuPrestador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateMenuCliente": {
+      "main": [
+        [
+          {
+            "node": "perguntaNome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateMenuPrestador": {
+      "main": [
+        [
+          {
+            "node": "perguntaNome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoNome": {
+      "main": [
+        [
+          {
+            "node": "setNomeUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setNomeUsuario": {
+      "main": [
+        [
+          {
+            "node": "updateNomeUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateNomeUsuario": {
+      "main": [
+        [
+          {
+            "node": "perguntaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoEmail": {
+      "main": [
+        [
+          {
+            "node": "setEmailUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateEmailUsuario": {
+      "main": [
+        [
+          {
+            "node": "perguntaEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoEndereco": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoEscolherServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoConfirmaDados": {
+      "main": [
+        [
+          {
+            "node": "isTrocaNome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoTrocaNome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isTrocaNome": {
+      "main": [
+        [
+          {
+            "node": "perguntaTrocarNome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isTrocaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isTrocaEmail": {
+      "main": [
+        [
+          {
+            "node": "perguntaTrocarEmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isTrocaEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isTrocaEndereco": {
+      "main": [
+        [
+          {
+            "node": "perguntaTrocarEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isContinuar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "perguntaTrocarNome": {
+      "main": [
+        [
+          {
+            "node": "setSubestadoTrocaNome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isContinuar": {
+      "main": [
+        [
+          {
+            "node": "setConfirmaUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isReiniciar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateEnderecoUsuario": {
+      "main": [
+        [
+          {
+            "node": "isPerguntaPrestador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setConfirmaUsuario": {
+      "main": [
+        [
+          {
+            "node": "updateConfirmaUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateConfirmaUsuario": {
+      "main": [
+        [
+          {
+            "node": "perguntaPermiteSalvar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoPermiteSalvar": {
+      "main": [
+        [
+          {
+            "node": "isPermiteSalvar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "apagarSessao": {
+      "main": [
+        [
+          {
+            "node": "finalizaConversa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isEletrecista": {
+      "main": [
+        [
+          {
+            "node": "setServicoEletrecista",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isCivil",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isPintor": {
+      "main": [
+        [
+          {
+            "node": "setServicoPintor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isArcondicionado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateAreaAtuacaoUsuario": {
+      "main": [
+        [
+          {
+            "node": "isPrestadorNovoServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isNaoPossuiOutraAtuacao": {
+      "main": [
+        [
+          {
+            "node": "setConfirmaDados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "nãoEntendiMensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateNaoPossuiOutraArea": {
+      "main": [
+        [
+          {
+            "node": "BuscaUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setConfirmaDados": {
+      "main": [
+        [
+          {
+            "node": "updateNaoPossuiOutraArea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isPermiteSalvar": {
+      "main": [
+        [
+          {
+            "node": "setObjetoUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "apagarSessao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "perguntaTrocarEmail": {
+      "main": [
+        [
+          {
+            "node": "setSubestadoTrocaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "perguntaTrocarEndereco": {
+      "main": [
+        [
+          {
+            "node": "setSubestadoTrocaEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setSubestadoTrocaNome": {
+      "main": [
+        [
+          {
+            "node": "updateSubestadoTrocaNome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setSubestadoTrocaEmail": {
+      "main": [
+        [
+          {
+            "node": "updateSubestadoTrocaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setSubestadoTrocaEndereco": {
+      "main": [
+        [
+          {
+            "node": "updateSubestadoTrocaEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoTrocaNome": {
+      "main": [
+        [
+          {
+            "node": "setTrocaNome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoTrocaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoTrocaEmail": {
+      "main": [
+        [
+          {
+            "node": "setTrocaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoTrocaEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoTrocaEndereco": {
+      "main": [
+        [
+          {
+            "node": "setTrocaEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoPermiteSalvar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setTrocaNome": {
+      "main": [
+        [
+          {
+            "node": "updateTrocaNome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setTrocaEmail": {
+      "main": [
+        [
+          {
+            "node": "updateTrocaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setTrocaEndereco": {
+      "main": [
+        [
+          {
+            "node": "updateTrocaEndereco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateTrocaNome": {
+      "main": [
+        [
+          {
+            "node": "BuscaUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateTrocaEndereco": {
+      "main": [
+        [
+          {
+            "node": "BuscaUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateTrocaEmail": {
+      "main": [
+        [
+          {
+            "node": "BuscaUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "perguntaConfirmarDados": {
+      "main": [
+        []
+      ]
+    },
+    "BuscaUsuario": {
+      "main": [
+        [
+          {
+            "node": "perguntaConfirmarDados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setEmailUsuario": {
+      "main": [
+        [
+          {
+            "node": "updateEmailUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setServicoEletrecista": {
+      "main": [
+        [
+          {
+            "node": "listaServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setServicoPintor": {
+      "main": [
+        [
+          {
+            "node": "listaServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isPrestadorNovoServico": {
+      "main": [
+        [
+          {
+            "node": "perguntaOutraAreaAtuacao",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "perguntaOutraServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isSubestadoEscolherServico": {
+      "main": [
+        [
+          {
+            "node": "isEletrecista",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isSubestadoConfirmaDados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "listaServico": {
+      "main": [
+        [
+          {
+            "node": "updateAreaAtuacaoUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InsereDadosUsuario": {
+      "main": [
+        [
+          {
+            "node": "selectUsuarioCadastrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "constroiObjetoUusarioServico": {
+      "main": [
+        [
+          {
+            "node": "InsereDadosUsuarioServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setObjetoUsuario": {
+      "main": [
+        [
+          {
+            "node": "InsereDadosUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setUsuarioServico": {
+      "main": [
+        [
+          {
+            "node": "constroiObjetoUusarioServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InsereDadosUsuarioServico": {
+      "main": [
+        [
+          {
+            "node": "apagarSessao1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "selectUsuarioCadastrado": {
+      "main": [
+        [
+          {
+            "node": "setUsuarioServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isAdministrador": {
+      "main": [
+        [
+          {
+            "node": "isConsultaDados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "entraraEmContato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "selectAdministrador": {
+      "main": [
+        [
+          {
+            "node": "isPresente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isConsultaDados": {
+      "main": [
+        [
+          {
+            "node": "selectDadosParaAdministrador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "perguntaAdmin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "selectDadosParaAdministrador": {
+      "main": [
+        [
+          {
+            "node": "transformaEmPlanilha",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "enviaParaGoogleSheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "apagarSessao1": {
+      "main": [
+        [
+          {
+            "node": "dadosSalvos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isPresente": {
+      "main": [
+        [
+          {
+            "node": "isAdministrador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ExisteTelefone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isTelefonePresente": {
+      "main": [
+        [
+          {
+            "node": "buscaUsuarioExistenteParaMerge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "dadosCriacao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "enviaRelatorio": {
+      "main": [
+        []
+      ]
+    },
+    "transformaEmPlanilha": {
+      "main": [
+        [
+          {
+            "node": "ajustaMensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ajustaMensagem": {
+      "main": [
+        [
+          {
+            "node": "enviaRelatorio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isReiniciar": {
+      "main": [
+        [
+          {
+            "node": "apagarSessao2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "nãoEntendiMensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "apagarSessao2": {
+      "main": [
+        [
+          {
+            "node": "conversaReiniciada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isCivil": {
+      "main": [
+        [
+          {
+            "node": "setServicoCivil",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isPintor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setServicoCivil": {
+      "main": [
+        [
+          {
+            "node": "listaServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isArcondicionado": {
+      "main": [
+        [
+          {
+            "node": "setServicoArcondicionado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isBombasGeral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setServicoArcondicionado": {
+      "main": [
+        [
+          {
+            "node": "listaServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isBombasGeral": {
+      "main": [
+        [
+          {
+            "node": "setServicoBombasGeral",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isHidráulica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setServicoBombasGeral": {
+      "main": [
+        [
+          {
+            "node": "listaServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isHidráulica": {
+      "main": [
+        [
+          {
+            "node": "setServicoHidraulica",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "isNaoPossuiOutraAtuacao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setServicoHidraulica": {
+      "main": [
+        [
+          {
+            "node": "listaServico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "updateEnderecoUsuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isPerguntaPrestador": {
+      "main": [
+        [
+          {
+            "node": "perguntaAreaAtuacao",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "perguntaEscolherServiço",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "eeea0681-7ff7-40dc-8277-6a57a0602db2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fc448d977b7b71671959f158c8f50fa4d8f231355f7080fd98722338f3ad928"
+  },
+  "id": "xOaouXIiPRDAaWPD",
+  "tags": []
+}

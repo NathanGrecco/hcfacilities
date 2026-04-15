@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+
+  mongo:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: hc_user_admin
+      MONGO_INITDB_ROOT_PASSWORD: hc_password
+
+    volumes:
+      - mongo_data:/data/db
+
+    networks:
+      - HCNetwork
+
+volumes:
+  mongo_data:
+
+networks:
+  HCNetwork:
+    external: true
